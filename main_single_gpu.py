@@ -29,7 +29,7 @@ parser.add_argument('data', metavar='DIR',
 parser.add_argument('--settings', metavar='DIR', default='./datasets/settings',
                     help='path to datset setting files')
 parser.add_argument('--modality', '-m', metavar='MODALITY', default='rgb',
-                    choices=["rgb", "flow", "rhythm", "rgb2"],   
+                    choices=["rgb", "flow", "rhythm", "rgb2"],
                     help='modality: rgb| rgb2 | flow | rhythm')
 parser.add_argument('--dataset', '-d', default='ucf101',
                     choices=["ucf101", "hmdb51"],
@@ -77,18 +77,18 @@ parser.add_argument('-e', '--evaluate', dest='evaluate', action='store_true',
                     help='evaluate model on validation set')
 
 best_prec1 = 0
-os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"   
+os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
 os.environ["CUDA_VISIBLE_DEVICES"]="0"
 
 def createNewDataset(fileNameRead, fileNameWrite, modality_):
     '''
         Generate new training file to train the network with two RGB images,
-        taking the first and second images randomly in the first and second 
+        taking the first and second images randomly in the first and second
         half respectively
     '''
     newPathFile = os.path.join(args.settings, args.dataset, fileNameWrite)
     train_setting_file = fileNameRead % (modality_, args.split)
-    pathFile = os.path.join(args.settings, args.dataset, train_setting_file)    
+    pathFile = os.path.join(args.settings, args.dataset, train_setting_file)
 
     file_ = open(pathFile,'r')
     linesFile = file_.readlines()
@@ -111,7 +111,7 @@ def main():
     print("Building model ... ")
     exits_model, model = build_model(int(args.start_epoch))
     if not exits_model:
-        return 
+        return
     else:
         print("Model %s is loaded. " % (args.arch))
 
@@ -161,17 +161,17 @@ def main():
             video_transforms.ToTensor(),
             normalize,
         ])
-    
-    modality_ = "rgb" if (args.modality == "rhythm" or args.modality[:3] == "rgb") else "flow"
- 
-	if args.modality == "rgb2":
-		createNewDataset("train_%s_split%d.txt" , "new_train.txt",modality_)
-		createNewDataset("val_%s_split%d.txt", "new_test.txt",modality_)
 
-    # data loading  
+    modality_ = "rgb" if (args.modality == "rhythm" or args.modality[:3] == "rgb") else "flow"
+
+    if args.modality == "rgb2":
+        createNewDataset("train_%s_split%d.txt" , "new_train.txt",modality_)
+        createNewDataset("val_%s_split%d.txt", "new_test.txt",modality_)
+
+    # data loading
     train_setting_file = "new_train.txt" if args.modality == "rgb2" else "train_%s_split%d.txt" % (modality_, args.split)
     train_split_file = os.path.join(args.settings, args.dataset, train_setting_file)
-    val_setting_file = "val_%s_split%d.txt" % (modality_, args.split) 
+    val_setting_file = "val_%s_split%d.txt" % (modality_, args.split)
     val_split_file = os.path.join(args.settings, args.dataset, val_setting_file)
 
     if not os.path.exists(train_split_file) or not os.path.exists(val_split_file):
@@ -209,7 +209,7 @@ def main():
         val_dataset,
         batch_size=args.batch_size, shuffle=True,
         num_workers=args.workers, pin_memory=True)
-    
+
     if args.evaluate:
         validate(val_loader, model, criterion)
         return
@@ -238,7 +238,7 @@ def main():
                 'best_prec1': best_prec1,
                 'optimizer' : optimizer.state_dict(),
             }, is_best, checkpoint_name, args.resume)
-    
+
 def build_model(resume_epoch):
     is_new = (resume_epoch==0)
     found = True
@@ -247,8 +247,8 @@ def build_model(resume_epoch):
     model = models.__dict__[args.arch](pretrained=is_new, channels=num_channels, num_classes=num_classes)
     if not is_new:
         path = os.path.join(model_path,'{0:03d}_checkpoint.pth.tar'.format(resume_epoch))
-        if os.path.isfile(path):    
-            print('loading checkpoint {0:03d} ...'.format(resume_epoch))    
+        if os.path.isfile(path):
+            print('loading checkpoint {0:03d} ...'.format(resume_epoch))
             params = torch.load(path)
             model.load_state_dict(params['state_dict'])
             print('loaded checkpoint {0:03d}'.format(resume_epoch))
@@ -286,7 +286,7 @@ def train(train_loader, model, criterion, optimizer, epoch):
             outputs_data = outputs[0].data
         else:
             loss = criterion(outputs, target_var)
-            outputs_data = outputs.data    
+            outputs_data = outputs.data
 
         # measure accuracy and record loss
         prec1, prec3 = accuracy(outputs_data, target, topk=(1, 3))
@@ -411,4 +411,3 @@ def accuracy(output, target, topk=(1,)):
 
 if __name__ == '__main__':
     main()
-
